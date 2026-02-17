@@ -44,3 +44,13 @@ GESTURE_DOWN = 0x02
 GESTURE_LEFT = 0x04
 GESTURE_TAP = 0x05
 GESTURE_LONG_PRESS = 0x0C
+
+# Energy data analysis
+ENERGY_HISTORY_24H = []  # Store last 24h of data
+ENERGY_HISTORY_7D = []   # Store last 7d of data
+MAX_24H_SAMPLES = 288    # 24h * 12 samples/hour (every 5 min)
+MAX_7D_SAMPLES = 336     # 7 days * 2 samples/hour (every 30 min)
+
+# Time formats
+TIME_FORMAT_SHORT = "%H:%M"
+TIME_FORMAT_FULL = "%Y-%m-%d %H:%M:%S"

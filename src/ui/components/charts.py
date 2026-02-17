@@ -1,6 +1,7 @@
 """Chart rendering components"""
 from PIL import ImageDraw
 from ui.renderer import BaseRenderer
+from config.constants import SCREEN_WIDTH, SCREEN_HEIGHT
 
 class ChartRenderer(BaseRenderer):
     def __init__(self, display, state):
@@ -15,7 +16,6 @@ class ChartRenderer(BaseRenderer):
         image = self.get_background()
         draw = ImageDraw.Draw(image)
         
-        screen_width, screen_height = image.size
         bar_width = 30
         spacing = 20
         max_bar_height = 100
@@ -23,7 +23,7 @@ class ChartRenderer(BaseRenderer):
         
         max_power = max([p.get("power", 0) for p in phases] + [1])
         total_width = len(phases) * (bar_width + spacing) - spacing
-        start_x = (screen_width - total_width) // 2
+        start_x = (SCREEN_WIDTH - total_width) // 2
         
         # Title
         draw.text((60, 10), "Power(W)", fill=self.get_text_color(), font=self.get_font())
@@ -96,3 +96,53 @@ class ChartRenderer(BaseRenderer):
         self.display.show_image(image)
         del draw
         del image
+    
+    def draw_trend_chart(self, draw, data, y_start, height, label):
+        """Draw compact trend chart for historical data"""
+        if not data or len(data) < 2:
+            # Draw "No data" message on the draw object
+            no_data_font = self.get_font(14)
+            draw.text((20, y_start + 20), f"No {label} data yet", 
+                     fill="gray", font=no_data_font)
+            return
+        
+        # Extract power values
+        powers = [d.get('totalPower', 0) for d in data]
+        
+        if not any(powers):  # All zeros
+            no_data_font = self.get_font(14)
+            draw.text((20, y_start + 20), f"All {label} values are zero", 
+                     fill="gray", font=no_data_font)
+            return
+        
+        max_power = max(powers)
+        min_power = min([p for p in powers if p > 0] + [0])
+        
+        chart_width = 200
+        chart_left = 20
+        chart_right = chart_left + chart_width
+        chart_bottom = y_start + height
+        
+        if max_power == min_power:
+            scale = 1
+        else:
+            scale = height / (max_power - min_power)
+        
+        # Draw axes
+        draw.line([(chart_left, y_start), (chart_left, chart_bottom)], fill="gray")
+        draw.line([(chart_left, chart_bottom), (chart_right, chart_bottom)], fill="gray")
+        
+        # Draw trend line
+        points = []
+        for i, power in enumerate(powers):
+            x = chart_left + (i * chart_width / (len(powers) - 1))
+            y = chart_bottom - int((power - min_power) * scale)
+            points.append((x, y))
+        
+        # Draw line segments
+        for i in range(len(points) - 1):
+            draw.line([points[i], points[i + 1]], fill=self.get_selected_color(), width=2)
+        
+        # Label
+        label_font = self.get_font(12)
+        draw.text((chart_left, y_start - 15), label, fill="gray", font=label_font)

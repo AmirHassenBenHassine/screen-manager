@@ -32,7 +32,7 @@ class DeviceMenu(BaseRenderer):
         del draw
         del image
     
-    def handle_gesture(self, gesture):
+    def handle_gesture(self, gesture, touch_device=None):
         """Handle device menu gestures"""
         if not self.state.device_metrics_pages:
             if gesture in [GESTURE_LEFT, GESTURE_LONG_PRESS]:

@@ -34,22 +34,24 @@ from ui.menus.wifi_menu import WiFiMenu
 from ui.menus.energy_menu import EnergyMenu
 from ui.menus.device_menu import DeviceMenu
 from ui.menus.confirmation import ConfirmationMenu
+from services.energy_analyzer import EnergyAnalyzer
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
 
 class MenuHandler:
     """Central menu handler"""
-    def __init__(self, display, state, wifi_service, touch_device):
+    def __init__(self, display, state, wifi_service, touch_device, energy_analyzer=None):
         self.display = display
         self.state = state
         self.wifi_service = wifi_service
-        self.touch_device = touch_device  
+        self.touch_device = touch_device
+        self.energy_analyzer = energy_analyzer
 
         # Initialize menus
         self.main_menu = MainMenu(display, state)
         self.wifi_menu = WiFiMenu(display, state, wifi_service)
-        self.energy_menu = EnergyMenu(display, state)
+        self.energy_menu = EnergyMenu(display, state, energy_analyzer)
         self.device_menu = DeviceMenu(display, state)
         self.confirmation_menu = ConfirmationMenu(display, state)
     
@@ -82,9 +84,9 @@ class MenuHandler:
         elif self.state.current_menu == MENU_WIFI:
             next_menu = self.wifi_menu.handle_gesture(gesture, self.touch_device)
         elif self.state.current_menu == MENU_MQTT:
-            next_menu = self.energy_menu.handle_gesture(gesture)
+            next_menu = self.energy_menu.handle_gesture(gesture, self.touch_device)  
         elif self.state.current_menu == MENU_METRICS:
-            next_menu = self.device_menu.handle_gesture(gesture)
+            next_menu = self.device_menu.handle_gesture(gesture, self.touch_device) 
         elif self.state.current_menu == MENU_CONFIRM_SHUTDOWN:
             next_menu = self.confirmation_menu.handle_shutdown_gesture(gesture, self.touch_device)
         elif self.state.current_menu == MENU_CONFIRM_NETWORK:
@@ -155,10 +157,11 @@ if __name__ == "__main__":
         logging.info("Initializing services...")
         wifi_service = WiFiService()
         data_logger = DataLogger()
+        energy_analyzer = EnergyAnalyzer() 
         mqtt_manager = MQTTManager(state, data_logger)
-        
+
         # Initialize menu handler
-        menu_handler = MenuHandler(disp, state, wifi_service, touch)
+        menu_handler = MenuHandler(disp, state, wifi_service, touch, energy_analyzer) 
         
         # Initialize touch handler
         touch_handler = TouchHandler(touch, state, menu_handler)
