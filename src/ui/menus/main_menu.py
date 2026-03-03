@@ -15,6 +15,14 @@ class MainMenu(BaseRenderer):
         image = self.get_background()
         draw = ImageDraw.Draw(image)
         
+        # Update notification badge (if available)
+        if self.state.update_available:
+            badge_font = self.get_font(14)
+            badge_text = "🔔 Update"
+            badge_w = badge_font.getlength(badge_text)
+            draw.text((SCREEN_WIDTH - badge_w - 10, 10), badge_text, 
+                    fill="orange", font=badge_font)
+        
         height = len(self.items) * 40
         y_start = (SCREEN_HEIGHT - height) // 2
         
@@ -28,13 +36,13 @@ class MainMenu(BaseRenderer):
         # Theme toggle
         emoji_w = self.get_font().getlength(TOGGLE_THEME_EMOJI)
         draw.text(((SCREEN_WIDTH - emoji_w) // 2, SCREEN_HEIGHT - 35), 
-                 TOGGLE_THEME_EMOJI, fill=self.get_selected_color(), font=self.get_font())
+                TOGGLE_THEME_EMOJI, fill=self.get_selected_color(), font=self.get_font())
         
         self.display.show_image(image)
         del draw
         del image
-    
-    def handle_gesture(self, gesture, touch_device=None):  
+
+    def handle_gesture(self, gesture, touch_device=None):
         """Handle main menu gestures"""
         if gesture == GESTURE_UP:
             self.state.selected_option = (self.state.selected_option - 1) % len(self.items)
@@ -43,10 +51,19 @@ class MainMenu(BaseRenderer):
             self.state.selected_option = (self.state.selected_option + 1) % len(self.items)
             self.render()
         elif gesture == GESTURE_TAP:
+            # Check if tapped on update notification
+            if touch_device and self.state.update_available:
+                touch_device.get_point()
+                x, y = touch_device.X_point, touch_device.Y_point
+                
+                # Update badge area (top right)
+                if x > SCREEN_WIDTH - 100 and y < 30:
+                    return MENU_UPDATE
+            
             return self._handle_selection(touch_device)
         
         return None
-    
+
     def _handle_selection(self, touch_device):
         """Handle menu selection"""
         # Check for theme toggle (only if touch_device provided)

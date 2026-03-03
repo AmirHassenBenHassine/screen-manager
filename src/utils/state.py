@@ -44,5 +44,7 @@ class AppState:
         self.cached_current_ssid = None
         self.last_ssid_check_time = 0
 
+        # Update state (new)
+        self.update_available = False 
 # Global instance
 state = AppState()

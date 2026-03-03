@@ -35,18 +35,21 @@ from ui.menus.energy_menu import EnergyMenu
 from ui.menus.device_menu import DeviceMenu
 from ui.menus.confirmation import ConfirmationMenu
 from services.energy_analyzer import EnergyAnalyzer
+from services.update_checker import UpdateChecker
+from ui.menus.update_menu import UpdateMenu
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
 
 class MenuHandler:
     """Central menu handler"""
-    def __init__(self, display, state, wifi_service, touch_device, energy_analyzer=None):
+    def __init__(self, display, state, wifi_service, touch_device, energy_analyzer=None, update_checker=None):
         self.display = display
         self.state = state
         self.wifi_service = wifi_service
         self.touch_device = touch_device
         self.energy_analyzer = energy_analyzer
+        self.update_checker = update_checker
 
         # Initialize menus
         self.main_menu = MainMenu(display, state)
@@ -54,7 +57,8 @@ class MenuHandler:
         self.energy_menu = EnergyMenu(display, state, energy_analyzer)
         self.device_menu = DeviceMenu(display, state)
         self.confirmation_menu = ConfirmationMenu(display, state)
-    
+        self.update_menu = UpdateMenu(display, state, update_checker)
+
     def render_current_menu(self):
         """Render current menu"""
         if self.state.current_menu == MENU_MAIN:
@@ -69,7 +73,9 @@ class MenuHandler:
             self.confirmation_menu.render_shutdown_confirmation()
         elif self.state.current_menu == MENU_CONFIRM_NETWORK:
             self.wifi_menu.render_network_confirmation()
-    
+        elif self.state.current_menu == MENU_UPDATE:
+            self.update_menu.render()
+
     def render_main_menu(self):
         """Render main menu"""
         self.state.current_menu = MENU_MAIN
@@ -91,7 +97,9 @@ class MenuHandler:
             next_menu = self.confirmation_menu.handle_shutdown_gesture(gesture, self.touch_device)
         elif self.state.current_menu == MENU_CONFIRM_NETWORK:
             next_menu = self.wifi_menu.handle_confirmation_gesture(gesture, self.touch_device)
-        
+        elif self.state.current_menu == MENU_UPDATE:
+            next_menu = self.update_menu.handle_gesture(gesture, self.touch_device)
+
         if next_menu is not None:
             self.state.current_menu = next_menu
             time.sleep(0.1)
@@ -159,9 +167,10 @@ if __name__ == "__main__":
         data_logger = DataLogger()
         energy_analyzer = EnergyAnalyzer() 
         mqtt_manager = MQTTManager(state, data_logger)
+        update_checker = UpdateChecker(state, check_interval=3600)  #Check every hour
 
         # Initialize menu handler
-        menu_handler = MenuHandler(disp, state, wifi_service, touch, energy_analyzer) 
+        menu_handler = MenuHandler(disp, state, wifi_service, touch, energy_analyzer, update_checker)
         
         # Initialize touch handler
         touch_handler = TouchHandler(touch, state, menu_handler)
