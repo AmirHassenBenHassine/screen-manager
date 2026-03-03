@@ -166,8 +166,8 @@ if __name__ == "__main__":
         wifi_service = WiFiService()
         data_logger = DataLogger()
         energy_analyzer = EnergyAnalyzer() 
+        update_checker = UpdateChecker(state, check_interval=3600, testing_mode=True)
         mqtt_manager = MQTTManager(state, data_logger)
-        update_checker = UpdateChecker(state, check_interval=3600)  #Check every hour
 
         # Initialize menu handler
         menu_handler = MenuHandler(disp, state, wifi_service, touch, energy_analyzer, update_checker)
