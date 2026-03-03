@@ -6,26 +6,19 @@ import time
 import os
 
 class UpdateChecker:
-    def __init__(self, state, check_interval=3600, testing_mode=True):
+    def __init__(self, state, check_interval=3600):
         """
         Initialize update checker
         
         Args:
             state: Application state
             check_interval: Seconds between update checks (default: 1 hour)
-            testing_mode: If True, uses screen-manager2, else screen-manager
         """
         self.state = state
         self.check_interval = check_interval
-        
-        # ✅ Use different paths for testing vs production
-        if testing_mode or os.path.exists("/home/orangepi/screen-manager2"):
-            self.repo_path = "/home/orangepi/screen-manager2"
-        else:
-            self.repo_path = "/home/orangepi/screen-manager"
-        
+        self.repo_path = "/home/orangepi/screen-manager"
         self.ansible_repo = "https://github.com/ORION-DEVELOPMENT-DIONE/update-manager.git"
-        self.screen_repo = "https://github.com/AmirHassenBenHassine/screen-manager"
+        self.screen_repo = "https://github.com/ORION-DEVELOPMENT-DIONE/screen-manager.git"
         self.current_version = self._get_current_version()
         self.latest_version = None
         self.update_available = False
